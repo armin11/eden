@@ -1,0 +1,63 @@
+uid,role,description,hidden,controller,function,table,uacl,oacl,,
+ANONYMOUS,Anonymous,,,gis,,,READ,,,
+ANONYMOUS,Anonymous,,,hms,,,READ,,,
+ANONYMOUS,Anonymous,,,org,facility,,READ,,,
+ANONYMOUS,Anonymous,,,org,organisation,,READ,,,
+ANONYMOUS,Anonymous,,,org,organization,,READ,,,
+ANONYMOUS,Anonymous,,,,,org_facility,READ,,,
+ANONYMOUS,Anonymous,,,,,org_organisation,READ,,,
+ANONYMOUS,Anonymous,,,,,org_organisation_organisation_type,READ,,,
+AUTHENTICATED,Authenticated,,,gis,,,READ,CREATE,UPDATE,DELETE
+AUTHENTICATED,Authenticated,,,gis,location,,CREATE,READ,UPDATE,DELETE
+AUTHENTICATED,Authenticated,,,hrm,,,READ,UPDATE,,
+AUTHENTICATED,Authenticated,,,hrm,person,,NONE,READ,UPDATE,
+AUTHENTICATED,Authenticated,,,hrm,staff,,NONE,,,
+AUTHENTICATED,Authenticated,,,hrm,volunteer,,NONE,,,
+AUTHENTICATED,Authenticated,,,msg,search,,READ,,,
+AUTHENTICATED,Authenticated,,,org,facility,,READ,,,
+AUTHENTICATED,Authenticated,,,org,organisation,,READ,,,
+AUTHENTICATED,Authenticated,,,pr,,,READ,UPDATE,,
+AUTHENTICATED,Authenticated,,,pr,pentity,,READ,,,
+AUTHENTICATED,Authenticated,,,pr,person,,CREATE,READ,UPDATE,
+AUTHENTICATED,Authenticated,,,pr,person_search,,READ,,,
+AUTHENTICATED,Authenticated,,,supply,,,CREATE,READ,,
+AUTHENTICATED,Authenticated,,,,,org_organisation,READ,,,
+AUTHENTICATED,Authenticated,,,,,pr_person,READ,UPDATE,,
+HR_ADMIN,HR Administrator,,,hrm,,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,hrm,person,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,hrm,staff,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,hrm,volunteer,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,pr,,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,pr,person,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,vol,,,CREATE,READ,UPDATE,DELETE
+HR_ADMIN,HR Administrator,,,,,pr_person,CREATE,READ,UPDATE,DELETE
+LOGS_ADMIN,Logistics Administrator,,,asset,,,CREATE,READ,UPDATE,DELETE
+LOGS_ADMIN,Logistics Administrator,,,inv,,,CREATE,READ,UPDATE,DELETE
+LOGS_ADMIN,Logistics Administrator,,,req,,,CREATE,READ,UPDATE,DELETE
+LOGS_ADMIN,Logistics Administrator,,,supply,,,CREATE,READ,UPDATE,DELETE
+LOGS_ADMIN,Logistics Administrator,,,vehicle,,,CREATE,READ,UPDATE,DELETE
+MAP_ADMIN,Map Administrator,,,gis,,,CREATE,READ,UPDATE,DELETE
+MAP_ADMIN,Map Administrator,,,gis,location,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,asset,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,cms,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,doc,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,gis,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,gis,location,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,hrm,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,hrm,person,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,hrm,staff,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,hrm,volunteer,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,inv,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,msg,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,org,organisation,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,pr,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,pr,person,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,project,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,req,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,supply,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,vehicle,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,vol,,,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,,,org_facility,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,,,org_organisation,CREATE,READ,UPDATE,DELETE
+ORG_ADMIN,Organisation Administrator,,,,,pr_person,CREATE,READ,UPDATE,DELETE
+PROJECT_ADMIN,Project Administrator,,,project,,,CREATE,READ,UPDATE,DELETE
