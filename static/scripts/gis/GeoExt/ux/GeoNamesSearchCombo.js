@@ -41,13 +41,13 @@ GeoExt.ux.GeoNamesSearchCombo = Ext.extend(Ext.form.ComboBox, {
      *  See http://www.dev.sencha.com/deploy/dev/docs/source/Combo.html#cfg-Ext.form.ComboBox-loadingText,
      *  default value is "Search in Geonames...".
      */
-    loadingText: 'Search in Geonames...',
+    loadingText: 'Ortsuche in Rheinland-Pfalz...',
 
     /** api: config[emptyText]
      *  See http://www.dev.sencha.com/deploy/dev/docs/source/TextField.html#cfg-Ext.form.TextField-emptyText,
      *  default value is "Search location in Geonames".
      */
-    emptyText: 'Search location in Geonames',
+    emptyText: 'Suche Ort in Rheinland-Pfalz',
 
     /** api: config[username]
      *  ``String`` Username to send with API requests. Mandatory.
@@ -218,7 +218,8 @@ GeoExt.ux.GeoNamesSearchCombo = Ext.extend(Ext.form.ComboBox, {
      *  Url of the GeoNames service: http://www.GeoNames.org/export/GeoNames-search.html
      */
     //url: 'http://ws.geonames.org/searchJSON?',
-    url: 'http://api.geonames.org/searchJSON?',
+    //url: 'http://api.geonames.org/searchJSON?',
+    url: 'https://www.geoportal.rlp.de/mapbender/geoportal/gaz_geom_mobile.php?outputFormat=json&resultTarget=web&searchEPSG=4326&forcePoint=true&forceGeonames=true&bundesland=Rheinland-Pfalz&',
 
     /** private: constructor
      */
