@@ -77,6 +77,7 @@ class HospitalDataModel(S3Model):
             1: T("Hospital"),
             2: T("Field Hospital"),
             3: T("Specialized Hospital"),
+            4: T("Corona specialized Hospital"),
             11: T("Health center"),
             12: T("Health center with beds"),
             13: T("Health center without beds"),
@@ -733,6 +734,10 @@ class HospitalDataModel(S3Model):
             14: T("Operating Rooms"),
             15: T("Cholera Treatment"),
             16: T("Ebola Treatment"),
+            17: T("Surveillance"),
+            18: T("Respiration"),
+            19: T("Auxiliary Respiration"),
+            20: T("Corona Treatment"),
             99: T("Other")
         }
 

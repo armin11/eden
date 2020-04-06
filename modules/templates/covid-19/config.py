@@ -12,23 +12,24 @@ def config(settings):
 
     T = current.T
 
-    settings.base.system_name = T("Sahana Eden Humanitarian Management Platform")
-    settings.base.system_name_short = T("Sahana Eden Humanitarian Management Platform")
+    settings.base.system_name = T("Demo: Krisenmanagementplattform COVID-19")
+    settings.base.system_name_short = T("Demo: Krisenmanagementplattform COVID-19")
     #settings.base.prepopulate.clear()
     del settings.base.prepopulate[:]
     settings.base.prepopulate.append("covid-19/base")
     settings.base.prepopulate.append("covid-19")
     settings.base.theme = "covid-19"
     settings.L10n.languages = OrderedDict([
+        ("de", "German"),
         ("en", "English"),
         ("fr", "French"),
-        ("de", "German"),
         ("it", "Italian"),
     ])
     # Default language for Language Toolbar (& GIS Locations in future)
     settings.L10n.default_language = "de" 
     settings.L10n.decimal_separator = ","
     settings.L10n.translate_gis_layer = True
+    #following is problematic, if no translations for the location exists and using python 2
     settings.L10n.translate_gis_location = False 
     settings.L10n.name_alt_gis_location = True
     settings.fin.currency_default = "EUR"
