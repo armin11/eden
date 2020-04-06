@@ -24,6 +24,7 @@ def config(settings):
         ("en", "English"),
         ("fr", "French"),
         ("it", "Italian"),
+        ("tr", "Turkish"),
     ])
     # Default language for Language Toolbar (& GIS Locations in future)
     settings.L10n.default_language = "de" 

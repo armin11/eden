@@ -32,12 +32,12 @@ esac
 # =============================================================================
 # Global variables
 #
-echo -e "Which Sahana Eden repository should we clone? [sahana/eden-stable] : \c "
-read EDEN_REPO
-if [[ ! "$EDEN_REPO" ]]; then
+#echo -e "Which Sahana Eden repository should we clone? [sahana/eden-stable] : \c "
+#read EDEN_REPO
+#if [[ ! "$EDEN_REPO" ]]; then
     # Default to stable
-    EDEN_REPO=sahana/eden-stable
-fi
+#    EDEN_REPO=sahana/eden-stable
+#fi
 
 WEB2PY_HOME=/home/web2py
 APPS_HOME=$WEB2PY_HOME/applications
@@ -227,7 +227,7 @@ sed -i 's|TkAgg|Agg|' /etc/matplotlibrc
 
 ## Install Sahana Eden
 cd $APPS_HOME
-env GIT_SSL_NO_VERIFY=true git clone https://github.com/$EDEN_REPO.git eden
+env GIT_SSL_NO_VERIFY=true git clone https://github.com/armin11/eden.git eden
 
 # Create missing directories and fix permissions
 chown web2py $WEB2PY_HOME
