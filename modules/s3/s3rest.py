@@ -537,7 +537,7 @@ class S3Request(object):
             s.seek(0)
             s_str = s.read().decode("utf-8")
             try:
-                filters = json.load(s_str)
+                filters = json.loads(s_str)
             except ValueError:
                 filters = {}
             if not isinstance(filters, dict):
