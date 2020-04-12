@@ -77,7 +77,6 @@ class HospitalDataModel(S3Model):
             1: T("Hospital"),
             2: T("Field Hospital"),
             3: T("Specialized Hospital"),
-            4: T("Corona specialized Hospital"),
             11: T("Health center"),
             12: T("Health center with beds"),
             13: T("Health center without beds"),
@@ -107,6 +106,27 @@ class HospitalDataModel(S3Model):
             98: T("Other"),
             99: T("None"),
         } #: Power Supply Type Options
+
+        hms_bed_type_opts = {
+            1: T("Adult ICU"),
+            2: T("Pediatric ICU"),
+            3: T("Neonatal ICU"),
+            4: T("Emergency Department"),
+            5: T("Nursery Beds"),
+            6: T("General Medical/Surgical"),
+            7: T("Rehabilitation/Long Term Care"),
+            8: T("Burn ICU"),
+            9: T("Pediatrics"),
+            10: T("Adult Psychiatric"),
+            11: T("Pediatric Psychiatric"),
+            12: T("Negative Flow Isolation"),
+            13: T("Other Isolation"),
+            14: T("Operating Rooms"),
+            15: T("Cholera Treatment"),
+            16: T("Ebola Treatment"),
+            17: T("Respirator"), # e.g. COVID-19
+            99: T("Other")
+        } #: Bed Type Options
 
         tablename = "hms_hospital"
         define_table(tablename,
@@ -266,8 +286,8 @@ class HospitalDataModel(S3Model):
                               "location_id$L1",
                               "location_id$L2",
                               ],
-                             label=T("Name"),
-                             _class="filter-search",
+                             label = T("Name"),
+                             _class = "filter-search",
                              ),
                 S3OptionsFilter("facility_type",
                                 label = T("Type"),
@@ -287,6 +307,12 @@ class HospitalDataModel(S3Model):
                 S3OptionsFilter("status.power_supply_type",
                                 label = T("Power"),
                                 options = hms_power_supply_type_opts,
+                                #represent = "%(name)s",
+                                #hidden = True,
+                                ),
+                S3OptionsFilter("bed_capacity.bed_type",
+                                label = T("Bed Type"),
+                                options = hms_bed_type_opts,
                                 #represent = "%(name)s",
                                 #hidden = True,
                                 ),
@@ -717,29 +743,6 @@ class HospitalDataModel(S3Model):
         # ---------------------------------------------------------------------
         # Bed Capacity
         #
-        hms_bed_type_opts = {
-            1: T("Adult ICU"),
-            2: T("Pediatric ICU"),
-            3: T("Neonatal ICU"),
-            4: T("Emergency Department"),
-            5: T("Nursery Beds"),
-            6: T("General Medical/Surgical"),
-            7: T("Rehabilitation/Long Term Care"),
-            8: T("Burn ICU"),
-            9: T("Pediatrics"),
-            10: T("Adult Psychiatric"),
-            11: T("Pediatric Psychiatric"),
-            12: T("Negative Flow Isolation"),
-            13: T("Other Isolation"),
-            14: T("Operating Rooms"),
-            15: T("Cholera Treatment"),
-            16: T("Ebola Treatment"),
-            17: T("Surveillance"),
-            18: T("Respiration"),
-            19: T("Auxiliary Respiration"),
-            20: T("Corona Treatment"),
-            99: T("Other")
-        }
 
         tablename = "hms_bed_capacity"
         define_table(tablename,
