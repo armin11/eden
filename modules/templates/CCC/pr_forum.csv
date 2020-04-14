@@ -1,2 +1,5 @@
 uuid,Name,Type,Comments
-,Reserves,,Just for realm-restricted Role
+,Cases,,For realm-restricted Role
+,Donors,,For realm-restricted Role
+,Groups,,For realm-restricted Role
+,Reserves,,For realm-restricted Roles

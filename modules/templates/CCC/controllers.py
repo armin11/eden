@@ -9,7 +9,7 @@ from gluon import *
 from gluon.storage import Storage
 from s3 import FS, ICON, IS_ONE_OF, S3CustomController, S3Method, \
                S3MultiSelectWidget, S3Profile, S3SQLCustomForm, \
-               s3_avatar_represent, \
+               s3_avatar_represent, s3_comments_widget, \
                s3_mark_required, s3_phone_requires, s3_str, s3_truncate
 
 SEPARATORS = (",", ":")
@@ -172,7 +172,8 @@ class donor(S3CustomController):
                 (table.deleted != True)
         item = current.db(query).select(table.body,
                                         table.id,
-                                        limitby=(0, 1)).first()
+                                        limitby = (0, 1)
+                                        ).first()
         if item:
             if ADMIN:
                 item = DIV(XML(item.body),
@@ -238,11 +239,11 @@ class personAdditional(S3Method):
 
             # Filtered components
             s3db.add_components(tablename,
-                                pr_person_tag = ({"name": "convictions",
-                                                  "joinby": "person_id",
-                                                  "filterby": {"tag": "convictions"},
-                                                  "multiple": False,
-                                                  },
+                                pr_person_tag = (#{"name": "convictions",
+                                                 # "joinby": "person_id",
+                                                 # "filterby": {"tag": "convictions"},
+                                                 # "multiple": False,
+                                                 # },
                                                  {"name": "dbs",
                                                   "joinby": "person_id",
                                                   "filterby": {"tag": "dbs"},
@@ -288,20 +289,30 @@ class personAdditional(S3Method):
                                                   "filterby": {"tag": "faith_requirements_details"},
                                                   "multiple": False,
                                                   },
+                                                 {"name": "workplace",
+                                                  "joinby": "person_id",
+                                                  "filterby": {"tag": "workplace"},
+                                                  "multiple": False,
+                                                  },
+                                                 {"name": "workplace_details",
+                                                  "joinby": "person_id",
+                                                  "filterby": {"tag": "workplace_details"},
+                                                  "multiple": False,
+                                                  },
                                                  ),
                                 )
 
             # Individual settings for specific tag components
             components_get = s3db.resource(tablename).components.get
 
-            convictions = components_get("convictions")
-            f = convictions.table.value
-            f.requires = IS_IN_SET({"0": T("No"),
-                                    "1": T("Yes"),
-                                    })
-            f.widget = lambda f, v: \
-                            SQLFORM.widgets.radio.widget(f, v,
-                                                         style="divs")
+            #convictions = components_get("convictions")
+            #f = convictions.table.value
+            #f.requires = IS_IN_SET({"0": T("No"),
+            #                        "1": T("Yes"),
+            #                        })
+            #f.widget = lambda f, v: \
+            #                SQLFORM.widgets.radio.widget(f, v,
+            #                                             style="divs")
 
             dbs = components_get("dbs")
             f = dbs.table.value
@@ -348,12 +359,24 @@ class personAdditional(S3Method):
                             SQLFORM.widgets.radio.widget(f, v,
                                                          style="divs")
 
+            workplace = components_get("workplace")
+            f = workplace.table.value
+            f.requires = IS_IN_SET({"0": T("No"),
+                                    "1": T("Yes"),
+                                    })
+            f.widget = lambda f, v: \
+                            SQLFORM.widgets.radio.widget(f, v,
+                                                         style="divs")
+
             form = S3SQLCustomForm((T("That require significant physical activity (including lifting and carrying) and may involve being outdoors (e.g. clean up of affected properties)"), "significant_physical.value"),
                                    (T("That require some physical activity and may involve being outdoors (e.g. door knocking)"), "some_physical.value"),
                                    (T("That require little physical activity and are based indoors (e.g. preparing refreshments)"), "little_physical.value"),
                                    (T("If you wish, you can give us some further information on any fitness, medical or mobility issues that might limit the kind of activities you are able to volunteer for; this will help us to suggest suitable opportunities for you"), "health_details.value"),
+                                   (T("Are you volunteering under your workplace volunteering scheme?"), "workplace.value"),
+                                   (T("If yes please name your employer"), "workplace_details.value"),
                                    (T("Are you DBS checked?"), "dbs.value"),
-                                   (T("Do you have any unspent convictions?"), "convictions.value"),
+                                   (T("Are you DBS checked?"), "dbs.value"),
+                                   #(T("Do you have any unspent convictions?"), "convictions.value"),
                                    (T("Please indicate Faith support you can offer"), "faith_support.value"),
                                    (T("What help and support can you give those from other Faiths?"), "faith_support_other.value"),
                                    (T("Do you have any faith requirements that you would like help with if you are coming to Support Cumbria?"), "faith_requirements.value"),
@@ -440,6 +463,18 @@ class register(S3CustomController):
         for key in districts:
             districts_and_uk[key] = districts[key]
 
+        # Lookup Slots
+        stable = s3db.pr_slot
+        slots = db(stable.deleted == False).select(stable.id,
+                                                   stable.name)
+        slots = {s.id:s.name for s in slots}
+
+        # Lookup Certificates
+        ctable = s3db.hrm_certificate
+        certificates = db(ctable.deleted == False).select(ctable.id,
+                                                          ctable.name)
+        certificates = {c.id:c.name for c in certificates}
+
         # Check Type of Registration
         agency = donor = existing = group = False
 
@@ -492,9 +527,40 @@ class register(S3CustomController):
                           Field("skills_details",
                                 label = T("Please specify details"),
                                 ),
+                          Field("certificates", "list:string",
+                                label = T("Qualifications"),
+                                requires = IS_IN_SET(certificates, multiple=True),
+                                widget = S3MultiSelectWidget(header="",
+                                                             selectedList=3),
+                                ),
+                          Field("experience",
+                                label = T("Skills and Experience"),
+                                widget = lambda f, v: \
+                                    s3_comments_widget(f, v, _placeholder = "e.g. Co-ordination, Event Management, PCV qualified.")
+                                ),
+                          Field("resources",
+                                label = T("Offers of Resources"),
+                                widget = lambda f, v: \
+                                    s3_comments_widget(f, v, _placeholder = "e.g. Minibus.")
+                                ),
                           Field("where_operate", "list:string",
                                 label = T("Where would you be willing to volunteer?"),
                                 requires = IS_IN_SET(districts, multiple=True),
+                                widget = S3MultiSelectWidget(header="",
+                                                             selectedList=3),
+                                ),
+                          Field("travel", "boolean",
+                                label = T("Willing to Travel?"),
+                                requires = IS_IN_SET({0: T("No"),
+                                                      1: T("Yes"),
+                                                      }),
+                                widget = lambda f, v: \
+                                    SQLFORM.widgets.radio.widget(f, v,
+                                                                 style="divs"),
+                                ),
+                          Field("slots", "list:string",
+                                label = T("Times"),
+                                requires = IS_IN_SET(slots, multiple=True),
                                 widget = S3MultiSelectWidget(header="",
                                                              selectedList=3),
                                 ),
@@ -552,9 +618,20 @@ class register(S3CustomController):
                                 label = T("Relationship"),
                                 requires = IS_NOT_EMPTY(),
                                 ),
+                          Field("workplace", "integer",
+                                label = T("Are you volunteering under your workplace volunteering scheme?"),
+                                requires = IS_IN_SET({0: T("No"),
+                                                      1: T("Yes"),
+                                                      }),
+                                widget = lambda f, v: \
+                                    SQLFORM.widgets.radio.widget(f, v,
+                                                                 style="divs"),
+                                ),
+                          Field("workplace_details",
+                                label = T("If yes please name your employer"),
+                                ),
                           Field("dbs", "integer",
                                 label = T("Are you DBS checked?"),
-                                #comment = T("Please tick 'Yes' if you have any convictions that are not yet spent under the Rehabilitation of Offenders Act 1974. The term 'convictions' is used to refer to any sentence or disposal issued by a court. If all your convictions are spent, you can tick 'No'. If you're not sure if your convictions are unspent or spent, you can use a tool available at www.disclosurecalculator.org.uk and read guidance at hub.unlock.org.uk/roa"),
                                 requires = IS_IN_SET({0: T("No"),
                                                       1: T("Yes"),
                                                       }),
@@ -562,16 +639,16 @@ class register(S3CustomController):
                                     SQLFORM.widgets.radio.widget(f, v,
                                                                  style="divs"),
                                 ),
-                          Field("convictions", "integer",
-                                label = T("Do you have any unspent convictions?"),
-                                comment = T("Please tick 'Yes' if you have any convictions that are not yet spent under the Rehabilitation of Offenders Act 1974. The term 'convictions' is used to refer to any sentence or disposal issued by a court. If all your convictions are spent, you can tick 'No'. If you're not sure if your convictions are unspent or spent, you can use a tool available at www.disclosurecalculator.org.uk and read guidance at hub.unlock.org.uk/roa"),
-                                requires = IS_IN_SET({0: T("No"),
-                                                      1: T("Yes"),
-                                                      }),
-                                widget = lambda f, v: \
-                                    SQLFORM.widgets.radio.widget(f, v,
-                                                                 style="divs"),
-                                ),
+                          #Field("convictions", "integer",
+                          #      label = T("Do you have any unspent convictions?"),
+                          #      comment = T("Please tick 'Yes' if you have any convictions that are not yet spent under the Rehabilitation of Offenders Act 1974. The term 'convictions' is used to refer to any sentence or disposal issued by a court. If all your convictions are spent, you can tick 'No'. If you're not sure if your convictions are unspent or spent, you can use a tool available at www.disclosurecalculator.org.uk and read guidance at hub.unlock.org.uk/roa"),
+                          #      requires = IS_IN_SET({0: T("No"),
+                          #                            1: T("Yes"),
+                          #                            }),
+                          #      widget = lambda f, v: \
+                          #          SQLFORM.widgets.radio.widget(f, v,
+                          #                                       style="divs"),
+                          #      ),
                           # Consent (GDPR + FOC)
                           Field("consent",
                                 label = T("Consent"),
@@ -1016,11 +1093,14 @@ class register(S3CustomController):
 
         # Form buttons
         REGISTER = T("Register")
-        buttons = [INPUT(_type="submit", _value=REGISTER),
+        buttons = [INPUT(_type = "submit",
+                         _value = REGISTER,
+                         ),
                    A(T("Login"),
-                     _href=URL(f="user", args="login"),
-                     _id="login-btn",
-                     _class="action-lnk",
+                     _href = URL(f="user",
+                                 args = "login"),
+                     _id = "login-btn",
+                     _class = "action-lnk",
                      ),
                    ]
 
@@ -1082,16 +1162,22 @@ class register(S3CustomController):
             # Volunteer Offer
             form[0].insert(12, DIV(_class = "subheading",
                                    ))
+            # Availability
+            form[0].insert(18, DIV("Availability",
+                                   _class = "subheading",
+                                   ))
             # Health
-            form[0].insert(16, DIV("Many of the opportunities available following an incident require volunteers to be fit and active, may involve working in dirty or dusty environments, and could involve being outdoors - for example, removing damaged furniture and cleaning affected buildings, or lifting, packaging and distributing donated items. Some volunteer roles will be less physically demanding - for example, knocking on doors to check people are OK and gather information, making refreshments and helping with administration. Are you interested in opportunities:",
+            form[0].insert(22, DIV("Many of the opportunities available following an incident require volunteers to be fit and active, may involve working in dirty or dusty environments, and could involve being outdoors - for example, removing damaged furniture and cleaning affected buildings, or lifting, packaging and distributing donated items. Some volunteer roles will be less physically demanding - for example, knocking on doors to check people are OK and gather information, making refreshments and helping with administration. Are you interested in opportunities:",
                                    _class = "subheading",
                                    ))
-            form[0].insert(-7, DIV("Person to be contacted in case of an emergency",
+            form[0].insert(-8, DIV("Person to be contacted in case of an emergency",
                                    _class = "subheading",
                                    ))
-            form[0].insert(-4, DIV(_class = "subheading",
+            form[0].insert(-5, DIV(_class = "subheading",
                                    ))
             form[0].insert(-3, DIV(_class = "subheading",
+                                   ))
+            form[0].insert(-1, DIV(_class = "subheading",
                                    ))
 
         # Inject client-side Validation
@@ -1198,7 +1284,12 @@ class register(S3CustomController):
                           "addr_postcode": form_vars.addr_postcode,
                           "skill_id": form_vars.skill_id or [],
                           "skills_details": form_vars.skills_details,
+                          "certificates": form_vars.certificates or [],
+                          "experience": form_vars.experience,
+                          "resources": form_vars.resources,
                           "where_operate": form_vars.where_operate or [],
+                          "travel": form_vars.travel,
+                          "slots": form_vars.slots or [],
                           "convictions": form_vars.convictions,
                           "dbs": form_vars.dbs,
                           "significant_physical": form_vars.significant_physical,
@@ -1210,6 +1301,8 @@ class register(S3CustomController):
                           "emergency_contact_name": form_vars.emergency_contact_name,
                           "emergency_contact_number": form_vars.emergency_contact_number,
                           "emergency_contact_relationship": form_vars.emergency_contact_relationship,
+                          "workplace": form_vars.workplace,
+                          "workplace_details": form_vars.workplace_details,
                           }
                 if existing:
                     custom["registration_type"] = "existing"
@@ -1380,7 +1473,7 @@ class verify_email(S3CustomController):
 
         if not approvers:
             # Agencies are approved by ADMIN(s)
-            #Others approved by ADMIn if no ORG_ADMIN(s) exist
+            #Others approved by ADMIN if no ORG_ADMIN(s) exist
             query = (gtable.uuid == "ADMIN") & \
                     (gtable.id == mtable.group_id) & \
                     (mtable.user_id == utable.id)
@@ -1577,13 +1670,38 @@ def auth_user_register_onaccept(user_id):
                                                ),
                                        person_id, hr_type=1)
 
-        # Assign correct Role
+        # Assign correct Roles
+        add_membership = auth.add_membership
         realm_entity = organisation["pe_id"]
-        auth.add_membership(user_id = user_id,
-                            role = "Organisation Administrator",
-                            # Leave to Default Realm to make easier to switch affiliations
-                            #entity = realm_entity,
-                            )
+        add_membership(user_id = user_id,
+                       role = "Organisation Administrator",
+                       # Leave to Default Realm to make easier to switch affiliations
+                       #entity = realm_entity,
+                       )
+        ftable = s3db.pr_forum
+        forums = db(ftable.name.belongs(("Donors",
+                                         "Groups",
+                                         "Reserves"))).select(ftable.pe_id,
+                                                              ftable.name,
+                                                              limitby = (0, 2)
+                                                              )
+        for forum in forums:
+            if forum.name == "Donors":
+                add_membership(user_id = user_id,
+                               role = "Donors Admin",
+                               entity = forum.pe_id,
+                               )
+            elif forum.name == "Groups":
+                add_membership(user_id = user_id,
+                               role = "Groups Admin",
+                               entity = forum.pe_id,
+                               )
+            elif forum.name == "Reserves":
+                add_membership(user_id = user_id,
+                               role = "Reserves Admin",
+                               entity = forum.pe_id,
+                               )
+        person.update_record(realm_entity = realm_entity)
 
         # Create Office
         record = {"parent": custom["addr_L3"],
@@ -1599,6 +1717,7 @@ def auth_user_register_onaccept(user_id):
         otable = s3db.org_office
         record = {"name": custom["organisation"],
                   "organisation_id": organisation_id,
+                  "realm_entity": realm_entity,
                   }
         office_id = otable.insert(**record)
         record["id"] = office_id
@@ -1647,25 +1766,31 @@ def auth_user_register_onaccept(user_id):
 
         # Add Contacts
         ctable = s3db.pr_contact
-        record = {"pe_id": pe_id,
-                  "contact_method": "EMAIL",
-                  "value": custom["email2"],
-                  "realm_entity": realm_entity,
-                  }
-        ctable.insert(**record)
-        # Currently no need to onaccept as none defined
-        record = {"pe_id": pe_id,
-                  "contact_method": "SMS",
-                  "value": custom["mobile2"],
-                  "realm_entity": realm_entity,
-                  }
-        ctable.insert(**record)
-        record = {"pe_id": pe_id,
-                  "contact_method": "HOME_PHONE",
-                  "value": custom["home2"],
-                  "realm_entity": realm_entity,
-                  }
-        ctable.insert(**record)
+        email2 = custom["email2"]
+        if email2:
+            record = {"pe_id": pe_id,
+                      "contact_method": "EMAIL",
+                      "value": email2,
+                      "realm_entity": realm_entity,
+                      }
+            ctable.insert(**record)
+            # Currently no need to onaccept as none defined
+        mobile2 = custom["mobile2"]
+        if mobile2:
+            record = {"pe_id": pe_id,
+                      "contact_method": "SMS",
+                      "value": mobile2,
+                      "realm_entity": realm_entity,
+                      }
+        home2 = custom["home2"]
+        if home2:
+            ctable.insert(**record)
+            record = {"pe_id": pe_id,
+                      "contact_method": "HOME_PHONE",
+                      "value": home2,
+                      "realm_entity": realm_entity,
+                      }
+            ctable.insert(**record)
 
         # Add Human Resource
         hrtable = s3db.hrm_human_resource
@@ -1683,6 +1808,17 @@ def auth_user_register_onaccept(user_id):
 
     elif registration_type == "donor":
         # Donor
+
+        # Lookup Realm Entity
+        ftable = s3db.pr_forum
+        forum = db(ftable.name == "Donors").select(ftable.pe_id,
+                                                   limitby = (0, 1)
+                                                   ).first()
+        try:
+            realm_entity = forum.pe_id
+        except AttributeError:
+            current.log.error("Cannot set Realm Entity for Donor: Forum not found")
+            realm_entity = None
 
         # Create Home Address
         gtable = s3db.gis_location
@@ -1703,6 +1839,7 @@ def auth_user_register_onaccept(user_id):
         record = {"pe_id": pe_id,
                   "location_id": location_id,
                   "owned_by_user": user_id,
+                  "realm_entity": realm_entity,
                   }
         address_id = atable.insert(**record)
         record["id"] = address_id
@@ -1718,6 +1855,9 @@ def auth_user_register_onaccept(user_id):
                                                   limitby = (0, 1),
                                                   ).first()
         person_id = person.id
+
+        # Set Realm Entity
+        person.update_record(realm_entity = realm_entity)
 
         # Create Items
         items_details = custom["items_details"]
@@ -1778,11 +1918,6 @@ def auth_user_register_onaccept(user_id):
         ttable.insert(**record)
 
         # Assign correct Role
-        #ftable = s3db.pr_forum
-        #forum = db(ftable.name == "Donors").select(ftable.pe_id,
-        #                                           limitby = (0, 1)
-        #                                           ).first()
-        #pe_id = form.pe_id
         auth.add_membership(user_id = user_id,
                             role = "Donor",
                             entity = pe_id,
@@ -1800,6 +1935,25 @@ def auth_user_register_onaccept(user_id):
         realm_entity = group["pe_id"]
         db(gtable.id == group_id).update(realm_entity = realm_entity)
 
+        # Affiliate with Groups Forum to allow management by AGENCY & ORGADMINs
+        ftable = s3db.pr_forum
+        forum = db(ftable.name == "Groups").select(ftable.pe_id,
+                                                   limitby = (0, 1)
+                                                   ).first()
+        try:
+            master = forum.pe_id
+        except AttributeError:
+            current.log.error("Unable to link Group to Groups Forum: Forum not Found")
+            return
+        s3db.pr_add_affiliation(master, realm_entity, role="Realm Hierarchy")
+
+        # Lookup Person
+        pe_id = auth.s3_user_pe_id(user_id)
+
+        # Set Realm Entity
+        ptable = s3db.pr_person
+        db(ptable.pe_id == pe_id).update(realm_entity = realm_entity)
+        
         # Create Home Address
         gtable = s3db.gis_location
         record = {# Assume outside Cumbria
@@ -1815,7 +1969,6 @@ def auth_user_register_onaccept(user_id):
             gform = Storage(vars = record)
             location_onaccept(gform)
 
-        pe_id = auth.s3_user_pe_id(user_id)
         atable = s3db.pr_address
         record = {"pe_id": pe_id,
                   "location_id": location_id,
@@ -1839,6 +1992,7 @@ def auth_user_register_onaccept(user_id):
         record = {"group_id": group_id,
                   "person_id": person.id,
                   "group_head": True,
+                  "realm_entity": realm_entity,
                   }
         membership_id = mtable.insert(**record)
         record["id"] = membership_id
@@ -1874,7 +2028,12 @@ def auth_user_register_onaccept(user_id):
             # Approve User (Creates Person & Email)
             auth.s3_approve_user(user2)
 
+            # Lookup Person
             pe_id = auth.s3_user_pe_id(user_id)
+
+            # Set Realm Entity
+            ptable = s3db.pr_person
+            db(ptable.pe_id == pe_id).update(realm_entity = realm_entity)
 
             # Add Address
             record = {"addr_street": custom["addr_street2"],
@@ -1921,6 +2080,7 @@ def auth_user_register_onaccept(user_id):
             record = {"group_id": group_id,
                       "person_id": person.id,
                       "group_head": True,
+                      "realm_entity": realm_entity,
                       }
             membership_id = mtable.insert(**record)
             record["id"] = membership_id
@@ -2007,6 +2167,71 @@ def auth_user_register_onaccept(user_id):
     else:
         # Individual / Existing
 
+        # Assign correct Role
+        utable = db.auth_user
+        user = db(utable.id == user_id).select(utable.organisation_id,
+                                               limitby = (0, 1)
+                                               ).first()
+        organisation_id = user.organisation_id
+        if organisation_id:
+            # Existing
+            otable = s3db.org_organisation
+            org = db(otable.id == organisation_id).select(otable.name,
+                                                          otable.pe_id,
+                                                          limitby = (0, 1)
+                                                          ).first()
+            realm_entity = org.pe_id
+            if org.name == "Agency Group":
+                add_membership = auth.add_membership
+                add_membership(user_id = user_id,
+                               role = "Agency Staff",
+                               )
+                ftable = s3db.pr_forum
+                forums = db(ftable.name.belongs(("Cases",
+                                                 "Donors",
+                                                 "Groups",
+                                                 "Reserves"))).select(ftable.pe_id,
+                                                                      ftable.name,
+                                                                      )
+                for forum in forums:
+                    if forum.name == "Cases":
+                        add_membership(user_id = user_id,
+                                       role = "Cases Admin",
+                                       entity = forum.pe_id,
+                                       )
+                    elif forum.name == "Donors":
+                        add_membership(user_id = user_id,
+                                       role = "Donors Admin",
+                                       entity = forum.pe_id,
+                                       )
+                    elif forum.name == "Groups":
+                        add_membership(user_id = user_id,
+                                       role = "Groups Admin",
+                                       entity = forum.pe_id,
+                                       )
+                    elif forum.name == "Reserves":
+                        add_membership(user_id = user_id,
+                                       role = "Reserves Admin",
+                                       entity = forum.pe_id,
+                                       )
+            else:
+                auth.add_membership(user_id = user_id,
+                                    role = "Community Volunteer",
+                                    # Leave to Default Realm to make easier to switch affiliations
+                                    #entity = realm_entity,
+                                    )
+        else:
+            # Reserve
+            ftable = s3db.pr_forum
+            forum = db(ftable.name == "Reserves").select(ftable.pe_id,
+                                                         limitby = (0, 1)
+                                                         ).first()
+            realm_entity = forum.pe_id
+            auth.add_membership(user_id = user_id,
+                                role = "Reserve Volunteer",
+                                entity = realm_entity,
+                                )
+
         # Create Home Address
         gtable = s3db.gis_location
         record = {"parent": custom["addr_L3"],
@@ -2026,6 +2251,7 @@ def auth_user_register_onaccept(user_id):
         record = {"pe_id": pe_id,
                   "location_id": location_id,
                   "owned_by_user": user_id,
+                  "realm_entity": realm_entity,
                   }
         address_id = atable.insert(**record)
         record["id"] = address_id
@@ -2042,12 +2268,16 @@ def auth_user_register_onaccept(user_id):
                                                   ).first()
         person_id = person.id
 
+        # Set Realm Entity
+        person.update_record(realm_entity = realm_entity)
+
         # Create Skills
         ctable = s3db.hrm_competency
         for skill_id in custom["skill_id"]:
             record = {"person_id": person_id,
                       "skill_id": skill_id,
                       "owned_by_user": user_id,
+                      "realm_entity": realm_entity,
                       }
             ctable.insert(**record)
 
@@ -2058,26 +2288,90 @@ def auth_user_register_onaccept(user_id):
                   }
         ttable.insert(**record)
 
+        # Qualifications
+        ltable = s3db.hrm_certification
+        certificates = custom.get("certificates", [])
+        for certificate_id in certificates:
+            record = {"person_id": person_id,
+                      "certificate_id": certificate_id,
+                      "owned_by_user": user_id,
+                      "realm_entity": realm_entity,
+                      }
+            ltable.insert(**record)
+
+        experience = custom.get("experience")
+        if experience is not None:
+            record = {"person_id": person_id,
+                      "tag": "experience",
+                      "value": experience,
+                      }
+            ttable.insert(**record)
+
+        resources = custom.get("resources")
+        if resources is not None:
+            record = {"person_id": person_id,
+                      "tag": "resources",
+                      "value": resources,
+                      }
+            ttable.insert(**record)
+
         # Where Operate
         ltable = s3db.pr_person_location
         for location_id in custom["where_operate"]:
             record = {"person_id": person_id,
                       "location_id": location_id,
+                      "owned_by_user": user_id,
+                      }
+            ltable.insert(**record)
+
+        # Slots
+        ltable = s3db.pr_person_slot
+        slots = custom.get("slots", [])
+        for slot_id in slots:
+            record = {"person_id": person_id,
+                      "slot_id": slot_id,
+                      "owned_by_user": user_id,
                       }
             ltable.insert(**record)
 
         # Additional Information
-        record = {"person_id": person_id,
-                  "tag": "convictions",
-                  "value": custom["convictions"],
-                  }
-        ttable.insert(**record)
+        #convictions = custom.get("convictions")
+        #if convictions is not None:
+        #    record = {"person_id": person_id,
+        #              "tag": "convictions",
+        #              "value": convictions,
+        #              }
+        #    ttable.insert(**record)
 
         dbs = custom.get("dbs")
         if dbs is not None:
             record = {"person_id": person_id,
                       "tag": "dbs",
                       "value": dbs,
+                      }
+            ttable.insert(**record)
+
+        travel = custom.get("travel")
+        if travel is not None:
+            record = {"person_id": person_id,
+                      "tag": "travel",
+                      "value": travel,
+                      }
+            ttable.insert(**record)
+
+        workplace = custom.get("workplace")
+        if workplace is not None:
+            record = {"person_id": person_id,
+                      "tag": "workplace",
+                      "value": workplace,
+                      }
+            ttable.insert(**record)
+
+        workplace_details = custom.get("workplace_details")
+        if workplace_details is not None:
+            record = {"person_id": person_id,
+                      "tag": "workplace_details",
+                      "value": workplace_details,
                       }
             ttable.insert(**record)
 
@@ -2124,36 +2418,9 @@ def auth_user_register_onaccept(user_id):
                   "phone": custom["emergency_contact_number"],
                   "relationship": custom["emergency_contact_relationship"],
                   "owned_by_user": user_id,
+                  "realm_entity": realm_entity,
                   }
         etable.insert(**record)
-
-        # Assign correct Role
-        utable = db.auth_user
-        user = db(utable.id == user_id).select(utable.organisation_id,
-                                               limitby = (0, 1)
-                                               ).first()
-        organisation_id = user.organisation_id
-        if organisation_id:
-            # Existing
-            #otable = s3db.org_organisation
-            #org = db(otable.id == organisation_id).select(otable.pe_id,
-            #                                              limitby = (0, 1)
-            #                                              ).first()
-            auth.add_membership(user_id = user_id,
-                                role = "Community Volunteer",
-                                # Leave to Default Realm to make easier to switch affiliations
-                                #entity = org.pe_id,
-                                )
-        else:
-            # Reserve
-            ftable = s3db.pr_forum
-            forum = db(ftable.name == "Reserves").select(ftable.pe_id,
-                                                         limitby = (0, 1)
-                                                         ).first()
-            auth.add_membership(user_id = user_id,
-                                role = "Reserve Volunteer",
-                                entity = forum.pe_id,
-                                )
 
     return
 

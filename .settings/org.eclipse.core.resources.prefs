@@ -1,0 +1,10 @@
+eclipse.preferences.version=1
+encoding//controllers/disease.py=utf-8
+encoding//controllers/hms.py=utf-8
+encoding//controllers/hrm.py=utf-8
+encoding//controllers/patient.py=utf-8
+encoding//languages/de.py=utf-8
+encoding//modules/s3/s3rest.py=utf-8
+encoding//modules/s3db/hms.py=utf-8
+encoding//modules/templates/covid-19/config.py=utf-8
+encoding//modules/templates/default/config.py=utf-8

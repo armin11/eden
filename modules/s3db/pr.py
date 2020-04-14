@@ -362,6 +362,7 @@ class PRPersonEntityModel(S3Model):
                                 ),
                       # Role type
                       Field("role_type", "integer",
+                            default = 1,
                             requires = IS_IN_SET(role_types, zero=None),
                             represent = lambda opt: \
                                 role_types.get(opt, UNKNOWN_OPT),
@@ -1074,6 +1075,11 @@ class PRPersonModel(S3Model):
                        # Skills
                        pr_language = "person_id",
                        hrm_certification = "person_id",
+                       hrm_certificate = {"link": "hrm_certification",
+                                          "joinby": "person_id",
+                                          "key": "certificate_id",
+                                          "actuate": "hide",
+                                          },
                        hrm_skill = {"link": "hrm_competency",
                                     "joinby": "person_id",
                                     "key": "skill_id",
@@ -1097,6 +1103,12 @@ class PRPersonModel(S3Model):
                        hrm_appraisal = "person_id",
                        # Availability
                        pr_unavailability = "person_id",
+                       #pr_person_slot = "person_id",
+                       pr_slot = {"link": "pr_person_slot",
+                                  "joinby": "person_id",
+                                  "key": "slot_id",
+                                  "actuate": "hide",
+                                  },
                        pr_person_availability = {"name": "availability",
                                                  "joinby": "person_id",
                                                  # Will need tochange in future
@@ -4732,6 +4744,7 @@ class PRAvailabilityModel(S3Model):
     names = ("pr_date_formula",
              "pr_time_formula",
              "pr_slot",
+             "pr_person_slot",
              "pr_person_availability",
              "pr_person_availability_slot",
              )
@@ -4739,11 +4752,12 @@ class PRAvailabilityModel(S3Model):
     def model(self):
 
         T = current.T
+        db = current.db
 
         configure = self.configure
         define_table = self.define_table
 
-        db = current.db
+        person_id = self.pr_person_id
 
         # ---------------------------------------------------------------------
         # Date Formula
@@ -4760,7 +4774,7 @@ class PRAvailabilityModel(S3Model):
                         3: T("Wednesday"),
                         4: T("Thursday"),
                         5: T("Friday"),
-                        6: T("Sunday"),
+                        6: T("Saturday"),
                         }
 
         tablename = "pr_date_formula"
@@ -4770,21 +4784,32 @@ class PRAvailabilityModel(S3Model):
                            ),
                      # "interval" is a reserved word in MySQL
                      Field("date_interval", "integer",
-                           represent = S3Represent(options=interval_opts),
-                           #requires = IS_IN_SET(interval_opts),
+                           default = 1,
+                           represent = S3Represent(options = interval_opts),
+                           requires = IS_IN_SET(interval_opts),
                            ),
                      Field("rate", "integer"), # Repeat Frequency
                      Field("days_of_week", "list:integer",
-                           represent = S3Represent(options=days_of_week),
-                           #requires = IS_IN_SET((0, 1, 2, 3, 4, 5, 6),
-                           #                     multiple = True,
-                           #                     ),
+                           represent = S3Represent(options = days_of_week),
+                           requires = IS_IN_SET((0, 1, 2, 3, 4, 5, 6),
+                                                multiple = True,
+                                                ),
                            ),
                      *s3_meta_fields())
 
         configure(tablename,
                   deduplicate = S3Duplicate(),
                   )
+
+        represent = S3Represent(lookup=tablename, translate=True)
+        date_formula_id = S3ReusableField("date_formula_id", "reference %s" % tablename,
+                                          label = T("Date Formula"),
+                                          ondelete = "CASCADE",
+                                          represent = represent,
+                                          requires = IS_EMPTY_OR(
+                                                        IS_ONE_OF(db, "pr_date_formula.id",
+                                                                  represent)),
+                                          )
 
         # ---------------------------------------------------------------------
         # Time Formula
@@ -4811,6 +4836,16 @@ class PRAvailabilityModel(S3Model):
                   deduplicate = S3Duplicate(),
                   )
 
+        represent = S3Represent(lookup=tablename, translate=True)
+        time_formula_id = S3ReusableField("time_formula_id", "reference %s" % tablename,
+                                          label = T("Time Formula"),
+                                          ondelete = "CASCADE",
+                                          represent = represent,
+                                          requires = IS_EMPTY_OR(
+                                                        IS_ONE_OF(db, "pr_time_formula.id",
+                                                                  represent)),
+                                          )
+
         # ---------------------------------------------------------------------
         # Slots
         #
@@ -4819,8 +4854,8 @@ class PRAvailabilityModel(S3Model):
                      Field("name",
                            label = T("Name"),
                            ),
-                     Field("date_formula_id", "reference pr_date_formula"),
-                     Field("time_formula_id", "reference pr_time_formula"),
+                     date_formula_id(),
+                     time_formula_id(),
                      *s3_meta_fields())
 
         configure(tablename,
@@ -4830,7 +4865,7 @@ class PRAvailabilityModel(S3Model):
         represent = S3Represent(lookup=tablename, translate=True)
         slot_id = S3ReusableField("slot_id", "reference %s" % tablename,
                                   label = T("Slot"),
-                                  ondelete = "RESTRICT",
+                                  ondelete = "CASCADE",
                                   represent = represent,
                                   requires = IS_EMPTY_OR(
                                                 IS_ONE_OF(db, "pr_slot.id",
@@ -4840,6 +4875,24 @@ class PRAvailabilityModel(S3Model):
                                   #                    label = ADD_SLOT,
                                   #                    ),
                                   )
+
+        # ---------------------------------------------------------------------
+        # Persons <> Slots
+        #
+        # Simple availability without Start Date, End Date or Location
+        # - can be used directly in a Person Form
+        #
+        tablename = "pr_person_slot"
+        define_table(tablename,
+                     person_id(empty = False,
+                               ondelete = "CASCADE",
+                               ),
+                     slot_id(),
+                     *s3_meta_fields())
+
+        configure(tablename,
+                  deduplicate = S3Duplicate(primary=("person_id", "slot_id")),
+                  )
 
         # ---------------------------------------------------------------------
         # Person Availability
@@ -4858,9 +4911,9 @@ class PRAvailabilityModel(S3Model):
 
         tablename = "pr_person_availability"
         define_table(tablename,
-                     self.pr_person_id(empty = False,
-                                       ondelete = "CASCADE",
-                                       ),
+                     person_id(empty = False,
+                               ondelete = "CASCADE",
+                               ),
                      #s3_date("start_date",
                      #        label = T("Start Date"),
                      #        ),
@@ -4868,7 +4921,7 @@ class PRAvailabilityModel(S3Model):
                      #        label = T("End Date"),
                      #        ),
                      #self.gis_location_id(),
-                     # Dropdown of alternate options
+                     # Simple Dropdown of alternate options
                      # - cannot be used for Rostering, but can give additional
                      #   information to the slots or just be a simpler alternative
                      Field("options", "integer",
@@ -4907,7 +4960,7 @@ class PRAvailabilityModel(S3Model):
                      *s3_meta_fields())
 
         configure(tablename,
-                  deduplicate = S3Duplicate(primary=("availability_id", "slot_id")),
+                  deduplicate = S3Duplicate(primary = ("availability_id", "slot_id")),
                   )
 
         # ---------------------------------------------------------------------
@@ -6866,12 +6919,13 @@ class pr_PersonEntityRepresent(S3Represent):
 
     def __init__(self,
                  # Bad default?
-                 show_label=True,
-                 default_label="[No ID Tag]",
-                 show_type=True,
-                 multiple=False,
-                 show_link=False,
-                 linkto=None,
+                 show_label = True,
+                 default_label = "[No ID Tag]",
+                 show_type = True,
+                 multiple = False,
+                 show_link = False,
+                 linkto = None,
+                 none = None,
                  ):
         """
             Constructor
@@ -6887,11 +6941,12 @@ class pr_PersonEntityRepresent(S3Represent):
         self.show_type = show_type
         self.training_event_represent = None
 
-        super(pr_PersonEntityRepresent, self).__init__(lookup="pr_pentity",
-                                                       key="pe_id",
-                                                       multiple=multiple,
-                                                       show_link=show_link,
-                                                       linkto=linkto,
+        super(pr_PersonEntityRepresent, self).__init__(lookup = "pr_pentity",
+                                                       key = "pe_id",
+                                                       multiple = multiple,
+                                                       show_link = show_link,
+                                                       linkto = linkto,
+                                                       none = none,
                                                        )
 
     # -------------------------------------------------------------------------
