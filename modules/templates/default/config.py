@@ -250,6 +250,7 @@ def config(settings):
         ("de", "German"),
         #("el", "Greek"),
         ("es", "Spanish"),
+        ##("hu", "Hungarian"),
         ##("id", "Bahasa Indonesia"),
         ("it", "Italian"),
         #("ja", "Japanese"),
@@ -258,10 +259,12 @@ def config(settings):
         ##("lo", "Lao"),
         ##("lt", "Lithuanian"),
         ##("mg", "Malagasy"),
+        ##("mk", "Macedonian"),
         ("mn", "Mongolian"),
         ##("ms", "Malaysian"),
         ("my", "Burmese"), # Myanmar
         ("ne", "Nepali"),
+        ("pl", "Polish"),
         ("prs", "Dari"), # Afghan Persian
         ("ps", "Pashto"), # Afghanistan, Pakistan
         ("pt", "Portuguese"),
