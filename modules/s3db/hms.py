@@ -77,6 +77,7 @@ class HospitalDataModel(S3Model):
             1: T("Hospital"),
             2: T("Field Hospital"),
             3: T("Specialized Hospital"),
+            4: T("Corona specialized Hospital"),
             11: T("Health center"),
             12: T("Health center with beds"),
             13: T("Health center without beds"),
@@ -125,6 +126,10 @@ class HospitalDataModel(S3Model):
             15: T("Cholera Treatment"),
             16: T("Ebola Treatment"),
             17: T("Respirator"),
+            18: T("Surveillance"),
+            19: T("Respiration"),
+            20: T("Auxiliary Respiration"),
+            21: T("Corona Treatment"),
             99: T("Other")
         } #: Bed Type Options
 
