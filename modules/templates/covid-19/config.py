@@ -200,11 +200,11 @@ def config(settings):
         #    #description = "Allows a Budget to be drawn up",
         #    module_type = 10
         #)),
-        #("deploy", Storage(
-        #    name_nice = T("Deployments"),
-        #    #description = "Manage Deployments",
-        #    module_type = 10,
-        #)),
+        ("deploy", Storage(
+            name_nice = T("Deployments"),
+            #description = "Manage Deployments",
+            module_type = 10,
+        )),
         ("disease", Storage(
             name_nice = T("Disease Tracking"),
             #description = "Helps to track cases and trace contacts in disease outbreaks",
@@ -229,11 +229,11 @@ def config(settings):
         #    #description = "Flood Gauges show water levels in various parts of the country",
         #    module_type = 10
         #)),
-        #("patient", Storage(
-        #    name_nice = T("Patient Tracking"),
-        #    #description = "Tracking of Patients",
-        #    module_type = 10
-        #)),
+        ("patient", Storage(
+            name_nice = T("Patient Tracking"),
+            #description = "Tracking of Patients",
+            module_type = 10
+        )),
         #("po", Storage(
         #    name_nice = T("Population Outreach"),
         #    #description = "Population Outreach",
@@ -253,7 +253,7 @@ def config(settings):
            name_nice = T("Jobs"),
            #description = "Simple Volunteer Jobs Management",
            restricted = False,
-           module_type = None,
+           module_type = 10,
         )),
         # Deprecated: Replaced by BR
         #("dvr", Storage(
