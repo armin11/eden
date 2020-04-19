@@ -957,7 +957,7 @@ class S3DeploymentAlertModel(S3Model):
         crud_strings[tablename] = Storage(
             label_create = T("Create Alert"),
             title_display = T("Alert Details"),
-            title_list = T("Alerts"),
+            title_list = T("Need"),
             title_update = T("Edit Alert Details"),
             title_upload = T("Import Alerts"),
             label_list_button = T("List Alerts"),
